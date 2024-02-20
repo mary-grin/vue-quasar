@@ -1,6 +1,6 @@
 <template>
   <h1>Weather App</h1>
-  <CityInput @search="getWeather"></CityInput>
+  <CityInput @search="getWeatherByCity"></CityInput>
   <WeatherCard v-if="weatherData" :weather-data="weatherData"></WeatherCard>
 </template>
 
@@ -12,7 +12,6 @@ import WeatherCard from '../components/WeatherCard.vue';
 import CityInput from '../components/CityInput.vue';
 
 const apiKey = '65426d5fd84fb4ed3b2f7a7a1263c1c8';
-const defaultCity = 'Lviv';
 
 export default defineComponent({
   name: 'MainLayout',
@@ -23,11 +22,23 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.getWeather(defaultCity);
+    navigator.geolocation.getCurrentPosition(position => {
+      const {latitude, longitude} = position.coords;
+      this.getWeatherByCoords(latitude, longitude);
+    });
   },
   methods: {
-    getWeather(city: string) {
+    getWeatherByCity(city: string) {
       axios.get<WeatherData>(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+        .then(response => {
+          this.weatherData = response.data; // Оновлення weatherData після отримання відповіді
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    },
+    getWeatherByCoords(lat: number, lon: number) {
+      axios.get<WeatherData>(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`)
         .then(response => {
           this.weatherData = response.data; // Оновлення weatherData після отримання відповіді
         })
